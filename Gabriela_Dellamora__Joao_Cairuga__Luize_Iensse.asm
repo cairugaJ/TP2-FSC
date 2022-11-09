@@ -7,10 +7,10 @@
 #
 # BINARY_SEARCH:
 # >Algoritmo
-#
+# VERSAO 2
 
 .text
-. globl main
+.globl main
 main:
 # Armazenando valores:
 	addi  $v1, $zero, -5
@@ -66,55 +66,60 @@ main:
 	la $t1, A
 	lw $t2, 0($t1) # $t1 = Array
 	
-	la $t3, pilha
-	lw $t4, 0($t3) # $t3 = pilha
+	la $sp, pilha
+	
 
 #Empilhar os inputs
 	addi $k1, $zero, 0
-	sw $v1, pilha($k1) #valor
+	sw $a0, pilha($k1) #valor
 	 addi $k1, $k1, 4
-	sw $a1, pilha($k1) # ultimoIdx
+	sw $a2, pilha($k1) # ultimoIdx
 	 addi $k1, $k1, 4
-	sw $a3, pilha($k1) # primeiroIdx
+	sw $t0, pilha($k1) # primeiroIdx
 	 addi $k1, $k1, 4
-	sw $t1, pilha($k1) # Array
+	sw $t1, pilha($k1) # Array address (pq é uma lista, n um valor inteiro)
+	j binary_search
+	#caso dê ruim
+	addi $a0, $zero, 888
+	li $v0, 1
+	syscall
+	li $v0, 10
+	syscall	
+	
 
 #Executo binary_search!
 
 binary_search:
-#Lista, Primeiro, Ultimo, Valor
-	sw $k0, pilha($k1) #array
-	 addi $k1, $k1, -4
-	sw $t9, pilha($k1) # primeiroIdx
-	 addi $k1, $k1, -4
-	sw $t8, pilha($k1) #ultimoIdx
-	 addi $k1, $k1, -4
-	sw $s7, pilha($k1) #valor
 
 #Funções da binary_search
-	beq $t9, $t8, returnMenosUm
-	 addu $s6, $t9, $t8 #prim + ult
+	bgt $t0, $a2, returnMenosUm
+	 addu $s6, $t0, $a2 #prim + ult
 	 div $s6, $s6, 2
 	 mulu $k1, $s6, 4 #transforma meio em idx
-	lw $s6, pilha($k1)
-	beq $s7, $s6, returnNumeroDesejado
+	la $s6, pilha($k1)
+	beq $a0, $s6, returnNumeroDesejado
 	 addi $s6, $s6, -1
-	bgt $s6, $s7, binary_search #-1 no valor $s6
+	bgt $s6, $a0, binary_search #-1 no valor $s6
 	 addi $s6, $s6, 2
 	j binary_search #+1 no valor meio
+	#caso dê ruim
+	addi $a0, $zero, 999
+	li $v0, 1
+	syscall
+	li $v0, 10
+	syscall	
 	
-	
-# Funções de retorno:
+# Funções de retorno: 
 #Essa aqui retorna -1 para o terminal. É utilizada caso o valor não tenha sido encontrado.
 returnMenosUm:
-	addi $v0, $zero, -1 # $v0 == -1
+	addi $a0, $zero, -1 # $v0 == -1
 	li $v0, 1 #loading valor de $v0 e avisando que queremos printar (comando 1)
 	syscall #printando -1
 	li $v0, 10 #loading valor de $v0 e avisando que queremos parar a execução (comando 10)
 	syscall #força saída caso dê problema. Aqui o programa para de rodar
 	
 returnNumeroDesejado:
-	addu $v0, $zero, $k1 #$s7 == o  que queremos printar #função feita no próprio binarySearch
+	addu $a0, $zero, $k1 #$s7 == o  que queremos printar #função feita no próprio binarySearch
 	div $v0, $k1, 4
 	li $v0, 1 #loading valor de $v0 e avisando que queremos printar (comando 1)
 	syscall #printando -1
@@ -123,8 +128,8 @@ returnNumeroDesejado:
 	
 		
 .data
-valor: .word 325       #MODIFICAR O VALOR QUE QUER ENCONTRAR AQUI!
-ultimoIdx: .word 0     #MODIFICAR O VALOR DO ULTIMO ÍNDICE
+valor: .word 11       #MODIFICAR O VALOR QUE QUER ENCONTRAR AQUI!
+ultimoIdx: .word 11     #MODIFICAR O VALOR DO ULTIMO ÍNDICE
 primeiroIdx: .word 11  #MODIFICAR O VALOR DO PRIMEIRO ÍNDICE
 
 pilha: .space 64             #'Arr','Prim','Ult','Valor'  | Argumentos (3 integers * 4 bits + 1 char *4bits)
