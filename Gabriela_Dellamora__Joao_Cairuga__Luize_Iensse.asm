@@ -53,15 +53,15 @@ main:
 	sw $t5, A($k1) #adicionando à lista 250
 	  addi $k1, $k1, 4 #atualizando index (index = index+1)    (elemento 325 = índice 44)
 	sw $t6, A($k1) #adicionado à lista 325
-# Terminamos nossa lista aqui!
+# Terminamos nossa lista aqui! Está tudo armazenado na memória!
 
 #começamos a empilhar os comandos! :D
 	#formato = (Array, PrimeiroValor, UltimoValor, ValorChave). Deve-se armazenar de forma contrária.
 	la $v1, valor
 	lw $a0, 0($v1) # $v1 = valorChave
-	la $a1, ultimoIdx
+	la $a1, ult
 	lw $a2, 0($a1) # $a1 = ultimoIdx
-	la $a3, primeiroIdx
+	la $a3, prim
 	lw $t0, 0($a3) # $a3 = primeiroIdx
 	la $t1, A
 	lw $t2, 0($t1) # $t1 = Array
@@ -78,7 +78,9 @@ main:
 	sw $t0, pilha($k1) # primeiroIdx
 	 addi $k1, $k1, 4
 	sw $t1, pilha($k1) # Array address (pq é uma lista, n um valor inteiro)
-	j binary_search
+	
+	
+	jal binary_search
 	#caso dê ruim
 	addi $a0, $zero, 888
 	li $v0, 1
@@ -95,13 +97,14 @@ binary_search:
 	bgt $t0, $a2, returnMenosUm
 	 addu $s6, $t0, $a2 #prim + ult
 	 div $s6, $s6, 2
-	 mulu $k1, $s6, 4 #transforma meio em idx
-	la $s6, pilha($k1)
-	beq $a0, $s6, returnNumeroDesejado
-	 addi $s6, $s6, -1
-	bgt $s6, $a0, binary_search #-1 no valor $s6
-	 addi $s6, $s6, 2
-	j binary_search #+1 no valor meio
+	 mul $s6, $s6, 4 #transforma meio em idx
+	lw $s4, A($s6)  # $k1 = A($s6)
+	beq $a0, $s4, returnNumeroDesejado #Se
+	 addi $t0, $s6, -4
+	bgt $a0, $s4, binary_search #-1 no valor $s6
+	 addi $t0, $s6, 0
+	 addi $a2, $s6, 4
+	jal  binary_search #+1 no valor meio
 	#caso dê ruim
 	addi $a0, $zero, 999
 	li $v0, 1
@@ -119,7 +122,7 @@ returnMenosUm:
 	syscall #força saída caso dê problema. Aqui o programa para de rodar
 	
 returnNumeroDesejado:
-	addu $a0, $zero, $k1 #$s7 == o  que queremos printar #função feita no próprio binarySearch
+	addu $a0, $zero, $s6 #$s7 == o  que queremos printar #função feita no próprio binarySearch
 	div $v0, $k1, 4
 	li $v0, 1 #loading valor de $v0 e avisando que queremos printar (comando 1)
 	syscall #printando -1
@@ -128,12 +131,12 @@ returnNumeroDesejado:
 	
 		
 .data
-valor: .word 11       #MODIFICAR O VALOR QUE QUER ENCONTRAR AQUI!
-ultimoIdx: .word 11     #MODIFICAR O VALOR DO ULTIMO ÍNDICE
-primeiroIdx: .word 11  #MODIFICAR O VALOR DO PRIMEIRO ÍNDICE
+valor: .word 325       #MODIFICAR O VALOR QUE QUER ENCONTRAR AQUI!
+ult: .word 11     #MODIFICAR O VALOR DO ULTIMO ÍNDICE
+prim: .word 0  #MODIFICAR O VALOR DO PRIMEIRO ÍNDICE
 
-pilha: .space 64             #'Arr','Prim','Ult','Valor'  | Argumentos (3 integers * 4 bits + 1 char *4bits)
-A: .space 48                #Lista de procura  (12 elementos * 4 bits)
+A: .space 44                #Lista de procura  (12 elementos * 4 bits)
+pilha: .space 16             #'Arr','Prim','Ult','Valor'  | Argumentos (3 integers * 4 bits + 1 char *4bits)
 
 #nEncontrado: .ascii " Não foi encontrado." #retorna -1
 #encontrado: .ascii " Foi encontrado." #retorna posição (começa em zero)
